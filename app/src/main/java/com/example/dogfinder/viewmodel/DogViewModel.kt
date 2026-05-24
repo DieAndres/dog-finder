@@ -12,6 +12,10 @@ class DogViewModel : ViewModel() {
 
     private val _breeds = mutableStateOf<List<String>>(emptyList())
     val breeds: State<List<String>> = _breeds
+    private val _isLoading = mutableStateOf(true)
+    val isLoading: State<Boolean> = _isLoading
+    private val _errorMessage = mutableStateOf<String?>(null)
+    val errorMessage: State<String?> = _errorMessage
     //ejecutar automáticamente cuando se crea el ViewModel
     init {
         getBreeds()
@@ -20,7 +24,8 @@ class DogViewModel : ViewModel() {
     private fun getBreeds() {
 
         viewModelScope.launch {
-
+            _isLoading.value = true
+            _errorMessage.value = null
             try {
 
                 val response = RetrofitInstance.api.getBreeds()
@@ -29,9 +34,9 @@ class DogViewModel : ViewModel() {
                 _breeds.value = breedNames
 
             } catch (e: Exception) {
-
-                Log.e("API_ERROR", e.message.toString())
-
+                _errorMessage.value = "Error al conectar: ${e.message}"
+            }finally {
+                _isLoading.value = false
             }
 
         }
