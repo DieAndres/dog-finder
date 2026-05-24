@@ -5,11 +5,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dogfinder.data.api.RetrofitInstance
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import com.example.dogfinder.data.local.AppDatabase
+import com.example.dogfinder.data.local.FavoriteDog
 /*HOOK*/
-class DogViewModel : ViewModel() {
+class DogViewModel(application: Application) : AndroidViewModel(application) {
 
+    private val db = AppDatabase.getDatabase(application)
+    private val dogDao = db.dogDao()
     private val _breeds = mutableStateOf<List<String>>(emptyList())
     val breeds: State<List<String>> = _breeds
     private val _isLoading = mutableStateOf(true)
@@ -58,6 +66,18 @@ class DogViewModel : ViewModel() {
                 _errorMessage.value = "Error al cargar imágenes: ${e.message}"
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+
+    fun toggleFavorite(imageUrl: String, breed: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val favorite = FavoriteDog(imageUrl, breed)
+                dogDao.insertFavorite(favorite)
+                Log.d("DogViewModel", "Perro guardado en favoritos: $imageUrl")
+            } catch (e: Exception) {
+                Log.e("DogViewModel", "Error al guardar favorito: ${e.message}")
             }
         }
     }

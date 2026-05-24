@@ -37,9 +37,13 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.getValue
 import androidx.navigation.compose.currentBackStackEntryAsState
+/*Para el boton de favoritos */
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.foundation.layout.padding
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -138,8 +142,9 @@ fun BreedListScreen(
 fun BreedDetailScreen(raza: String, dogViewModel: DogViewModel) {
     val imagenes = dogViewModel.breedImages.value
     val isLoading = dogViewModel.isLoading.value
+    val context = LocalContext.current // Lo necesitamos para el mensaje de aviso
 
-    LaunchedEffect(raza) {// Ejecuta la búsqueda de fotos al abrir esta pantalla o si cambia la raza (como un useEffect).
+    LaunchedEffect(raza) {
         dogViewModel.getImagesByBreed(raza)
     }
 
@@ -153,11 +158,29 @@ fun BreedDetailScreen(raza: String, dogViewModel: DogViewModel) {
             modifier = Modifier.fillMaxSize()
         ) {
             items(imagenes) { url ->
-                AsyncImage(
-                    model = url,
-                    contentDescription = "Perro $raza",
-                    modifier = Modifier.padding(4.dp)
-                )
+                Box(modifier = Modifier.padding(4.dp)) {
+                    // La foto del perro
+                    AsyncImage(
+                        model = url,
+                        contentDescription = "Perro $raza",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    // Boton de favorito
+                    IconButton(
+                        onClick = {
+                            dogViewModel.toggleFavorite(url, raza)
+                            Toast.makeText(context, "¡Añadido a favoritos!", Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier.align(Alignment.TopEnd)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "Favorito",
+                            tint = Color.Yellow
+                        )
+                    }
+                }
             }
         }
     }

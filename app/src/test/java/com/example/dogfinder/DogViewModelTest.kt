@@ -1,3 +1,8 @@
+import android.app.Application
+import io.mockk.mockk
+import io.mockk.every
+import com.example.dogfinder.data.local.AppDatabase
+import com.example.dogfinder.data.local.DogDao
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.example.dogfinder.data.api.RetrofitInstance
 import com.example.dogfinder.models.BreedResponse
@@ -38,14 +43,23 @@ class DogViewModelTest {
     // este test simula una peticion a la api para demotrar que luego de recibirla ya no muestra la pantalla de cargando
     @Test
     fun `estado inicial de isLoading debe ser falso despues de iniciar`() = runTest {
+        // "Engañamos" a Retrofit (Internet)
         mockkObject(RetrofitInstance)
         coEvery { RetrofitInstance.api.getBreeds() } returns BreedResponse(emptyMap(), "success")
 
-        val viewModel = DogViewModel()
-        advanceUntilIdle()
+        mockkObject(AppDatabase)
+        val mockDb = mockk<AppDatabase>(relaxed = true)
+        val mockDao = mockk<DogDao>(relaxed = true)
+        every { AppDatabase.getDatabase(any()) } returns mockDb
+        every { mockDb.dogDao() } returns mockDao
 
+        val application = mockk<Application>(relaxed = true)
+        val viewModel = DogViewModel(application)
+
+        advanceUntilIdle()
         assertEquals(false, viewModel.isLoading.value)
 
         unmockkObject(RetrofitInstance)
+        unmockkObject(AppDatabase)
     }
 }
