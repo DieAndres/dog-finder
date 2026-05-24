@@ -1,4 +1,4 @@
-package com.example.DogFinderTheme.ui.theme
+package com.example.dogfinder.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
