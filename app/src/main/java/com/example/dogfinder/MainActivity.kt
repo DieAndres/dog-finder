@@ -63,11 +63,21 @@ class MainActivity : ComponentActivity() {
                         TopAppBar(
                             title = { Text("Dog Finder") },
                             navigationIcon = {
-                                if (currentRoute?.startsWith("detalle") == true) {
+                                if (currentRoute?.startsWith("detalle") == true || currentRoute == "favoritos") {
                                     IconButton(onClick = { navController.popBackStack() }) {
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                             contentDescription = "Atrás"
+                                        )
+                                    }
+                                }
+                            },
+                            actions = {
+                                if (currentRoute != "favoritos") {
+                                    IconButton(onClick = { navController.navigate("favoritos") }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Star,
+                                            contentDescription = "Ver Favoritos"
                                         )
                                     }
                                 }
@@ -88,6 +98,9 @@ class MainActivity : ComponentActivity() {
                             composable("detalle/{razaNombre}") { backStackEntry ->
                                 val nombre = backStackEntry.arguments?.getString("razaNombre")
                                 BreedDetailScreen(nombre ?: "Desconocido", dogViewModel)
+                            }
+                            composable("favoritos") {
+                                FavoritesScreen(dogViewModel = dogViewModel)
                             }
                         }
                     }
@@ -180,6 +193,31 @@ fun BreedDetailScreen(raza: String, dogViewModel: DogViewModel) {
                             tint = Color.Yellow
                         )
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FavoritesScreen(dogViewModel: DogViewModel) {
+    val favoritos = dogViewModel.favorites.value
+    if (favoritos.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Aún no tienes perros favoritos")
+        }
+    } else {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(favoritos) { perro ->
+                Box(modifier = Modifier.padding(4.dp)) {
+                    AsyncImage(
+                        model = perro.imageUrl,
+                        contentDescription = "Perro favorito",
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
         }

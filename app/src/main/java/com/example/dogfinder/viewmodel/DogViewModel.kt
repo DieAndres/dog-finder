@@ -26,10 +26,12 @@ class DogViewModel(application: Application) : AndroidViewModel(application) {
     val errorMessage: State<String?> = _errorMessage
     private val _breedImages = mutableStateOf<List<String>>(emptyList())
     val breedImages: State<List<String>> = _breedImages
-
+    private val _favorites = mutableStateOf<List<FavoriteDog>>(emptyList())
+    val favorites: State<List<FavoriteDog>> = _favorites
     //ejecutar automáticamente cuando se crea el ViewModel
     init {
         getBreeds()
+        observeFavorites()
     }
 
     private fun getBreeds() {
@@ -78,6 +80,13 @@ class DogViewModel(application: Application) : AndroidViewModel(application) {
                 Log.d("DogViewModel", "Perro guardado en favoritos: $imageUrl")
             } catch (e: Exception) {
                 Log.e("DogViewModel", "Error al guardar favorito: ${e.message}")
+            }
+        }
+    }
+    private fun observeFavorites() {
+        viewModelScope.launch {
+            dogDao.getAllFavorites().collect { lista ->
+                _favorites.value = lista
             }
         }
     }
