@@ -18,14 +18,19 @@ import com.example.dogfinder.ui.theme.DogFinderTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dogfinder.viewmodel.DogViewModel
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,7 +52,7 @@ class MainActivity : ComponentActivity() {
 
                     composable("detalle/{razaNombre}") { backStackEntry ->
                         val nombre = backStackEntry.arguments?.getString("razaNombre")
-                        BreedDetailScreen(nombre ?: "Desconocido")
+                        BreedDetailScreen(nombre ?: "Desconocido", dogViewModel)
                     }
                 }
             }
@@ -97,9 +102,32 @@ fun BreedListScreen(
     }
 }
 @Composable
-fun BreedDetailScreen(raza: String) {    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-    Text(text = "Fotos de la raza: $raza", style = androidx.compose.material3.MaterialTheme.typography.headlineMedium)
-}
+fun BreedDetailScreen(raza: String, dogViewModel: DogViewModel) {
+    val imagenes = dogViewModel.breedImages.value
+    val isLoading = dogViewModel.isLoading.value
+
+    LaunchedEffect(raza) {// Ejecuta la búsqueda de fotos al abrir esta pantalla o si cambia la raza (como un useEffect).
+        dogViewModel.getImagesByBreed(raza)
+    }
+
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+    } else {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(2),
+            modifier = Modifier.fillMaxSize()
+        ) {
+            items(imagenes) { url ->
+                AsyncImage(
+                    model = url,
+                    contentDescription = "Perro $raza",
+                    modifier = Modifier.padding(4.dp)
+                )
+            }
+        }
+    }
 }
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
