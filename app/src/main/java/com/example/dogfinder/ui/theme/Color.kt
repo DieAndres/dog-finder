@@ -1,4 +1,4 @@
-package com.example.DogFinderTheme.ui.theme
+package com.example.dogfinder.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
