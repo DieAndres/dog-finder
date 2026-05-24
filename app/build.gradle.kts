@@ -64,6 +64,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")//guardar y manejar los datos de la UI
     implementation("androidx.room:room-runtime:2.6.1")// guardar datos localmente en el celular.
     implementation("androidx.room:room-ktx:2.6.1")
+    implementation("androidx.compose.material:material-icons-extended")//iconos de material
 
 
 

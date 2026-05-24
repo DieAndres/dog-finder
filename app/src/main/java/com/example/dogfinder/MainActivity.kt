@@ -13,7 +13,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.dogfinder.ui.theme.DogFinderTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dogfinder.viewmodel.DogViewModel
@@ -31,28 +30,62 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+/*Para los botones de volver atras*/
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.runtime.getValue
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContent {    val navController = rememberNavController()
+        setContent {
+            val navController = rememberNavController()
             val dogViewModel: DogViewModel = viewModel()
 
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
+            //Logica para el boton de atras
             DogFinderTheme {
-                NavHost(navController = navController, startDestination = "lista") {
-                    composable("lista") {
-                        BreedListScreen(
-                            dogViewModel = dogViewModel,
-                            onBreedClick = { raza ->
-                                navController.navigate("detalle/$raza") // Navegamos con parámetro
+                Scaffold(
+                    topBar = {
+                        TopAppBar(
+                            title = { Text("Dog Finder") },
+                            navigationIcon = {
+                                if (currentRoute?.startsWith("detalle") == true) {
+                                    IconButton(onClick = { navController.popBackStack() }) {
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                            contentDescription = "Atrás"
+                                        )
+                                    }
+                                }
                             }
                         )
                     }
-
-                    composable("detalle/{razaNombre}") { backStackEntry ->
-                        val nombre = backStackEntry.arguments?.getString("razaNombre")
-                        BreedDetailScreen(nombre ?: "Desconocido", dogViewModel)
+                ) { innerPadding ->
+                    Box(modifier = Modifier.padding(innerPadding)) {
+                        NavHost(navController = navController, startDestination = "lista") {
+                            composable("lista") {
+                                BreedListScreen(
+                                    dogViewModel = dogViewModel,
+                                    onBreedClick = { raza ->
+                                        navController.navigate("detalle/$raza")
+                                    }
+                                )
+                            }
+                            composable("detalle/{razaNombre}") { backStackEntry ->
+                                val nombre = backStackEntry.arguments?.getString("razaNombre")
+                                BreedDetailScreen(nombre ?: "Desconocido", dogViewModel)
+                            }
+                        }
                     }
                 }
             }
@@ -127,20 +160,5 @@ fun BreedDetailScreen(raza: String, dogViewModel: DogViewModel) {
                 )
             }
         }
-    }
-}
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    DogFinderTheme {
-        Greeting("Android")
     }
 }
