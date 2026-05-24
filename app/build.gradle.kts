@@ -66,6 +66,10 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     implementation("androidx.compose.material:material-icons-extended")//iconos de material
 
+    /*dependencia para los test*/
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3") //Permite probar código que usa viewModelScope.
+    testImplementation("io.mockk:mockk:1.13.9") // Sirve para crear "fakes" de tu API (simular respuestas sin ir a internet).
+    testImplementation("androidx.arch.core:core-testing:2.2.0") //  Ayuda a que las tareas instantáneas se ejecuten en orden
 
 
 }
