@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -43,16 +44,21 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import android.widget.Toast
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.Pets
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.layout.ContentScale
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -193,7 +199,7 @@ fun BreedListScreen(
 fun BreedDetailScreen(raza: String, dogViewModel: DogViewModel) {
     val imagenes = dogViewModel.breedImages.value
     val isLoading = dogViewModel.isLoading.value
-    val context = LocalContext.current // Lo necesitamos para el mensaje de aviso
+    val context = LocalContext.current 
 
     LaunchedEffect(raza) {
         dogViewModel.getImagesByBreed(raza)
@@ -206,30 +212,47 @@ fun BreedDetailScreen(raza: String, dogViewModel: DogViewModel) {
     } else {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(8.dp)
         ) {
             items(imagenes) { url ->
-                Box(modifier = Modifier.padding(4.dp)) {
-                    // La foto del perro
-                    AsyncImage(
-                        model = url,
-                        contentDescription = "Perro $raza",
-                        modifier = Modifier.fillMaxWidth()
-                    )
-
-                    // Boton de favorito
-                    IconButton(
-                        onClick = {
-                            dogViewModel.toggleFavorite(url, raza)
-                            Toast.makeText(context, "¡Añadido a favoritos!", Toast.LENGTH_SHORT).show()
-                        },
-                        modifier = Modifier.align(Alignment.TopEnd)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "Favorito",
-                            tint = Color.Yellow
+                Card(
+                    modifier = Modifier
+                        .padding(6.dp)
+                        .aspectRatio(1f),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Box {
+                        // La foto del perro
+                        AsyncImage(
+                            model = url,
+                            contentDescription = "Perro $raza",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
                         )
+                        Surface(
+                            color = Color.Black.copy(alpha = 0.3f),
+                            shape = CircleShape,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .size(36.dp)
+                                .align(Alignment.TopEnd)
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    dogViewModel.toggleFavorite(url, raza)
+                                    Toast.makeText(context, "¡Añadido a favoritos!", Toast.LENGTH_SHORT).show()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = "Favorito",
+                                    tint = Color.Yellow,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -247,7 +270,8 @@ fun FavoritesScreen(dogViewModel: DogViewModel) {
     } else {
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(8.dp)
         ) {
             items(favoritos) { perro ->
                 Box(modifier = Modifier.padding(4.dp)) {
