@@ -75,11 +75,17 @@ class DogViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleFavorite(imageUrl: String, breed: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val favorite = FavoriteDog(imageUrl, breed)
-                dogDao.insertFavorite(favorite)
-                Log.d("DogViewModel", "Perro guardado en favoritos: $imageUrl")
+                val exists = dogDao.exists(imageUrl) > 0
+                if (exists) {
+                    dogDao.deleteByUrl(imageUrl)
+                    Log.d("DogViewModel", "Perro eliminado de favoritos: $imageUrl")
+                } else {
+                    val favorite = FavoriteDog(imageUrl, breed)
+                    dogDao.insertFavorite(favorite)
+                    Log.d("DogViewModel", "Perro guardado en favoritos: $imageUrl")
+                }
             } catch (e: Exception) {
-                Log.e("DogViewModel", "Error al guardar favorito: ${e.message}")
+                Log.e("DogViewModel", "Error al alternar favorito: ${e.message}")
             }
         }
     }

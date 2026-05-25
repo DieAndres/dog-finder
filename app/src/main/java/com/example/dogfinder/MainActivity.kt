@@ -263,6 +263,8 @@ fun BreedDetailScreen(raza: String, dogViewModel: DogViewModel) {
 @Composable
 fun FavoritesScreen(dogViewModel: DogViewModel) {
     val favoritos = dogViewModel.favorites.value
+    val context = LocalContext.current
+
     if (favoritos.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Aún no tienes perros favoritos")
@@ -274,12 +276,44 @@ fun FavoritesScreen(dogViewModel: DogViewModel) {
             contentPadding = PaddingValues(8.dp)
         ) {
             items(favoritos) { perro ->
-                Box(modifier = Modifier.padding(4.dp)) {
-                    AsyncImage(
-                        model = perro.imageUrl,
-                        contentDescription = "Perro favorito",
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                Card(
+                    modifier = Modifier
+                        .padding(6.dp)
+                        .aspectRatio(1f),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Box {
+                        AsyncImage(
+                            model = perro.imageUrl,
+                            contentDescription = "Perro favorito",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                        Surface(
+                            color = Color.Black.copy(alpha = 0.3f),
+                            shape = CircleShape,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .size(36.dp)
+                                .align(Alignment.TopEnd)
+                        ) {
+                            IconButton(
+                                onClick = {
+                                    dogViewModel.toggleFavorite(perro.imageUrl, perro.breed)
+                                    // El mensaje ahora es más genérico o podrías manejarlo según el estado
+                                    Toast.makeText(context, "Lista de favoritos actualizada", Toast.LENGTH_SHORT).show()
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Star,
+                                    contentDescription = "Favorito",
+                                    tint = Color.Yellow,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

@@ -12,6 +12,12 @@ interface DogDao {
     @Delete
     fun deleteFavorite(dog: FavoriteDog)
 
+    @Query("DELETE FROM favorites WHERE imageUrl = :url")
+    fun deleteByUrl(url: String)
+
+    @Query("SELECT COUNT(*) FROM favorites WHERE imageUrl = :url")
+    fun exists(url: String): Int
+
 
     @Query("SELECT * FROM favorites")
     fun getAllFavorites(): Flow<List<FavoriteDog>>
