@@ -41,9 +41,18 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.compose.currentBackStackEntryAsState
 /*Para el boton de favoritos */
 import android.widget.Toast
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.filled.Pets
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.TopAppBarDefaults
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -61,13 +70,17 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     topBar = {
                         TopAppBar(
-                            title = { Text("Dog Finder") },
+                            title = { Text("Dog Finder", color = Color.White) },
+                            colors = TopAppBarDefaults.topAppBarColors(
+                                containerColor = MaterialTheme.colorScheme.primary
+                            ),
                             navigationIcon = {
                                 if (currentRoute?.startsWith("detalle") == true || currentRoute == "favoritos") {
                                     IconButton(onClick = { navController.popBackStack() }) {
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                            contentDescription = "Atrás"
+                                            contentDescription = "Atrás",
+                                            tint = Color.White
                                         )
                                     }
                                 }
@@ -77,7 +90,8 @@ class MainActivity : ComponentActivity() {
                                     IconButton(onClick = { navController.navigate("favoritos") }) {
                                         Icon(
                                             imageVector = Icons.Default.Star,
-                                            contentDescription = "Ver Favoritos"
+                                            contentDescription = "Ver Favoritos",
+                                            tint = Color.White
                                         )
                                     }
                                 }
@@ -139,13 +153,37 @@ fun BreedListScreen(
         else -> {
             LazyColumn {
                 items(listaDeRazas) { raza ->
-                    Text(
-                        text = raza,
+                    Card(
                         modifier = Modifier
-                            .padding(16.dp)
                             .fillMaxWidth()
-                            .clickable { onBreedClick(raza) }
-                    )
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clickable { onBreedClick(raza) },
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Pets,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(24.dp)
+                            )
+
+                            Spacer(modifier = Modifier.width(16.dp))
+
+                            Text(
+                                text = raza.replaceFirstChar { it.uppercase() },
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             }
         }
