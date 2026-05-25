@@ -61,7 +61,14 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.layout.ContentScale
 /*para intent*/
 import android.content.Intent
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.filled.Share
+/*para buscador*/
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.Search
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -153,6 +160,16 @@ fun BreedListScreen(
     val isLoading = dogViewModel.isLoading.value
     val errorMessage = dogViewModel.errorMessage.value
 
+    // NUEVO: variable de estado que guarda lo que el usuario escribe.
+    // 'remember' hace que el texto no se pierda al redibujar la pantalla.
+    var textoBusqueda by remember { mutableStateOf("") }
+
+    // NUEVO: la lista filtrada. Si el buscador está vacío muestra todo;
+    // si no, muestra solo las razas que contienen el texto escrito.
+    val razasFiltradas = listaDeRazas.filter { raza ->
+        raza.contains(textoBusqueda, ignoreCase = true)
+    }
+
     when {
         isLoading -> {
             Box(
@@ -171,45 +188,53 @@ fun BreedListScreen(
             }
         }
         else -> {
-            LazyColumn {
-                items(listaDeRazas) { raza ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .clickable { onBreedClick(raza) },
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) {
-                        Row(
+            // NUEVO: Column envuelve el buscador + la lista
+            Column {
+                // El campo de búsqueda
+                OutlinedTextField(
+                    value = textoBusqueda,
+                    onValueChange = { nuevoTexto -> textoBusqueda = nuevoTexto },
+                    label = { Text("Buscar raza...") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Search, contentDescription = "Buscar")
+                    },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+
+                // La lista ahora usa 'razasFiltradas' en lugar de 'listaDeRazas'
+                LazyColumn {
+                    items(razasFiltradas) { raza ->
+                        Card(
                             modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = Color(0xFFFFE0B2),
-                                modifier = Modifier.size(40.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = Icons.Default.Pets,
-                                        contentDescription = null,
-                                        tint = Color(0xFFE65100),
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.width(16.dp))
-
-                            Text(
-                                text = raza.replaceFirstChar { it.uppercase() },
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .clickable { onBreedClick(raza) },
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
                             )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Pets,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = raza.replaceFirstChar { it.uppercase() },
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
