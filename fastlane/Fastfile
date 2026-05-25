@@ -1,0 +1,14 @@
+default_platform(:android)
+ENV["JAVA_HOME"] = "C:/Program Files/Android/Android Studio/jbr"
+platform :android do
+  desc "Ejecuta los tests y genera el APK"
+  lane :entrega do
+    # 1. Ejecuta los tests
+    gradle(task: "testDebugUnitTest")
+
+    # 2. Compila la aplicación
+    gradle(task: "assembleDebug")
+
+    puts "¡Fastlane finalizó con éxito!"
+  end
+end
