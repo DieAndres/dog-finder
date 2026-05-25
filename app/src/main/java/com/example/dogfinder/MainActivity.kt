@@ -59,6 +59,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.layout.ContentScale
+/*para intent*/
+import android.content.Intent
+import androidx.compose.material.icons.filled.Share
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -76,9 +79,20 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     topBar = {
                         TopAppBar(
-                            title = { Text("Dog Finder", color = Color.White) },
+                            title = {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        imageVector = Icons.Default.Pets,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text("DoggoWiki", color = Color.White, style = MaterialTheme.typography.titleLarge)
+                                }
+                            },
                             colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.primary
+                                containerColor = Color(0xFFFF9800) // Un naranja vibrante y amigable
                             ),
                             navigationIcon = {
                                 if (currentRoute?.startsWith("detalle") == true || currentRoute == "favoritos") {
@@ -174,12 +188,20 @@ fun BreedListScreen(
                                 .fillMaxWidth(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Pets,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(24.dp)
-                            )
+                            Surface(
+                                shape = CircleShape,
+                                color = Color(0xFFFFE0B2),
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Default.Pets,
+                                        contentDescription = null,
+                                        tint = Color(0xFFE65100),
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
 
                             Spacer(modifier = Modifier.width(16.dp))
 
@@ -242,13 +264,39 @@ fun BreedDetailScreen(raza: String, dogViewModel: DogViewModel) {
                             IconButton(
                                 onClick = {
                                     dogViewModel.toggleFavorite(url, raza)
-                                    Toast.makeText(context, "¡Añadido a favoritos!", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "¡Favoritos actualizado!", Toast.LENGTH_SHORT).show()
                                 }
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Star,
                                     contentDescription = "Favorito",
                                     tint = Color.Yellow,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Surface(
+                            color = Color.Black.copy(alpha = 0.3f),
+                            shape = CircleShape,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .size(36.dp)
+                                .align(Alignment.TopStart)
+                        ) {
+                            IconButton(onClick = {
+                                val sendIntent = Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    putExtra(Intent.EXTRA_TEXT, "¡Mira este perro! $url")
+                                    type = "text/plain"
+                                }
+                                /*Esta es la ventana que se despliega para compartir el perro*/
+                                val shareIntent = Intent.createChooser(sendIntent, null)
+                                context.startActivity(shareIntent)
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = "Compartir",
+                                    tint = Color.White,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -301,7 +349,6 @@ fun FavoritesScreen(dogViewModel: DogViewModel) {
                             IconButton(
                                 onClick = {
                                     dogViewModel.toggleFavorite(perro.imageUrl, perro.breed)
-                                    // El mensaje ahora es más genérico o podrías manejarlo según el estado
                                     Toast.makeText(context, "Lista de favoritos actualizada", Toast.LENGTH_SHORT).show()
                                 }
                             ) {
@@ -309,6 +356,32 @@ fun FavoritesScreen(dogViewModel: DogViewModel) {
                                     imageVector = Icons.Default.Star,
                                     contentDescription = "Favorito",
                                     tint = Color.Yellow,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                        Surface(
+                            color = Color.Black.copy(alpha = 0.3f),
+                            shape = CircleShape,
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .size(36.dp)
+                                .align(Alignment.TopStart)
+                        ) {
+                            IconButton(onClick = {
+                                val sendIntent = Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    putExtra(Intent.EXTRA_TEXT, "¡Mira mi perro favorito! ${perro.imageUrl}")
+                                    type = "text/plain"
+                                }
+                                /*Esta es la ventana que se despliega para compartir el perro*/
+                                val shareIntent = Intent.createChooser(sendIntent, null)
+                                context.startActivity(shareIntent)
+                            }) {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = "Compartir",
+                                    tint = Color.White,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
