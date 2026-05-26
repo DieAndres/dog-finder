@@ -61,6 +61,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.layout.ContentScale
 /*para intent*/
 import android.content.Intent
+import com.example.dogfinder.service.DogDownloadService
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.filled.Share
 /*para buscador*/
@@ -113,6 +115,19 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             actions = {
+                                if (currentRoute == "favoritos") {
+                                    val context = LocalContext.current
+                                    IconButton(onClick = {
+                                        val intent = Intent(context, DogDownloadService::class.java)
+                                        context.startService(intent)
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Download,
+                                            contentDescription = "Descargar Favoritos",
+                                            tint = Color.White
+                                        )
+                                    }
+                                }
                                 if (currentRoute != "favoritos") {
                                     IconButton(onClick = { navController.navigate("favoritos") }) {
                                         Icon(

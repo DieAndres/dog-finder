@@ -126,6 +126,8 @@ app/src/main/java/com/example/dogfinder/
 │   └── DogImageResponse.kt      # Modelo de la respuesta de imágenes
 ├── viewmodel/
 │   └── DogViewModel.kt          # ViewModel principal
+├── service/
+│   └── DogDownloadService.kt    # Servicio de descarga de imágenes
 └── ui/theme/                    # Colores, tipografía y tema Material 3
 ```
 
@@ -157,11 +159,11 @@ app/src/main/java/com/example/dogfinder/
 | Componente | Implementación |
 |------------|----------------|
 | **Activity** | `MainActivity` — única Activity que aloja las pantallas de Compose. |
-| **Intents** | Se usan para la navegación interna y para compartir fotos de perros con otras apps mediante un Intent implícito (`ACTION_SEND`). |
+| **Service** | `DogDownloadService` — servicio encargado de la descarga de imágenes en segundo plano. |
+| **Intents** | Se usan para la navegación interna, compartir fotos (`ACTION_SEND`) e iniciar el servicio de descarga. |
 
-> Nota: los componentes Service, BroadcastReceiver y Content Provider están
-> contemplados como mejora futura del proyecto. Esta sección se actualizará si
-> se incorporan.
+> Nota: los componentes BroadcastReceiver y Content Provider están
+> contemplados como mejora futura del proyecto.
 
 ---
 
@@ -219,6 +221,11 @@ aunque se cierre la app, porque se almacenan en la base de datos local.
 Cada foto tiene un ícono de compartir en la esquina superior izquierda. Al
 tocarlo se abre el menú de compartir de Android, permitiendo enviar la imagen
 por WhatsApp, correo u otras aplicaciones.
+
+### Descargar fotos de favoritos
+Dentro de la pantalla de favoritos, se incluye un botón de descarga en la barra
+superior. Al accionarlo, se inicia el `DogDownloadService`, que descarga
+físicamente las imágenes a la carpeta privada de la app para su consulta local.
 
 ### Navegación
 El botón de flecha en la barra superior permite volver a la pantalla anterior.
