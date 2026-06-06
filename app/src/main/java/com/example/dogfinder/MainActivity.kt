@@ -71,20 +71,39 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.material.icons.filled.Search
+/*para modo oscuro*/
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // NUEVO: instanciamos la clase de preferencias para guardar el modo oscuro
+        val themePreferences = ThemePreferences(applicationContext)
+
         setContent {
             val navController = rememberNavController()
             val dogViewModel: DogViewModel = viewModel()
 
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
-            //Logica para el boton de atras
-            DogFinderTheme {
+
+            // NUEVO: observamos el modo oscuro guardado en DataStore.
+            // 'collectAsState' convierte el Flow en un State observable por Compose.
+            val isDarkMode by themePreferences.isDarkMode
+                .collectAsState(initial = false)
+
+            // NUEVO: scope para lanzar la coroutine que guarda el cambio
+            val scope = rememberCoroutineScope()
+
+            // NUEVO: ahora pasamos isDarkMode al theme
+            DogFinderTheme(darkTheme = isDarkMode) {
                 Scaffold(
                     topBar = {
                         TopAppBar(
@@ -101,7 +120,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = Color(0xFFFF9800) // Un naranja vibrante y amigable
+                                containerColor = Color(0xFFFF9800)
                             ),
                             navigationIcon = {
                                 if (currentRoute?.startsWith("detalle") == true || currentRoute == "favoritos") {
@@ -115,6 +134,19 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             actions = {
+                                // NUEVO: botón para alternar modo claro/oscuro (siempre visible)
+                                IconButton(onClick = {
+                                    scope.launch {
+                                        themePreferences.setDarkMode(!isDarkMode)
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                        contentDescription = if (isDarkMode) "Modo claro" else "Modo oscuro",
+                                        tint = Color.White
+                                    )
+                                }
+
                                 if (currentRoute == "favoritos") {
                                     val context = LocalContext.current
                                     IconButton(onClick = {
