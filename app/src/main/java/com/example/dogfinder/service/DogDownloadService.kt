@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
+import com.example.dogfinder.receiver.DownloadReceiver
 
 class DogDownloadService : Service() {
 
@@ -45,6 +46,15 @@ class DogDownloadService : Service() {
             withContext(Dispatchers.Main) {
                 Toast.makeText(applicationContext, "Descarga de favoritos completada", Toast.LENGTH_LONG).show()
             }
+
+            // NUEVO: enviar broadcast para que el Receiver muestre la notificación.
+            // El Intent lleva una "etiqueta" (action) y un dato extra (cuántas fotos se descargaron).
+            val broadcastIntent = Intent(DownloadReceiver.ACTION_DOWNLOAD_COMPLETE).apply {
+                setPackage(packageName) // requerido desde Android 8 para broadcasts explícitos
+                putExtra(DownloadReceiver.EXTRA_COUNT, favorites.size)
+            }
+            sendBroadcast(broadcastIntent)
+
             stopSelf()
         }
 

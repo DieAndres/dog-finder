@@ -26,12 +26,16 @@ curso de Desarrollo de Aplicaciones Móviles 2026.
 ## Descripción
 
 DoggoWiki es una app que consume la API pública **Dog CEO** para mostrar un
-catálogo de razas de perros. El usuario puede buscar razas por nombre, ver una
-galería de fotos de cada raza, marcar fotos como favoritas (que se guardan en el
-dispositivo) y compartir imágenes con otras aplicaciones.
+catálogo de razas de perros. El usuario puede:
 
-La app funciona con dos modos de visualización (claro y oscuro) y sigue las
-guías de **Material Design 3**.
+- Buscar razas por nombre con un buscador dinámico
+- Ver una galería de fotos de cada raza
+- Marcar fotos como favoritas (se guardan en el dispositivo)
+- Compartir imágenes con otras aplicaciones
+- Descargar las fotos favoritas al almacenamiento del dispositivo
+- Alternar entre modo claro y oscuro (preferencia persistente)
+
+La app sigue las guías de **Material Design 3**.
 
 ---
 
@@ -113,6 +117,7 @@ responsabilidades bien definidas:
 ```
 app/src/main/java/com/example/dogfinder/
 ├── MainActivity.kt              # Activity principal + pantallas Compose
+├── ThemePreferences.kt          # Persistencia de la preferencia del modo oscuro
 ├── data/
 │   ├── api/
 │   │   ├── DogApiService.kt     # Interfaz Retrofit con los endpoints
@@ -127,7 +132,9 @@ app/src/main/java/com/example/dogfinder/
 ├── viewmodel/
 │   └── DogViewModel.kt          # ViewModel principal
 ├── service/
-│   └── DogDownloadService.kt    # Servicio de descarga de imágenes
+│   └── DogDownloadService.kt    # Service que descarga las fotos favoritas
+├── receiver/
+│   └── DownloadReceiver.kt      # BroadcastReceiver que notifica al terminar
 └── ui/theme/                    # Colores, tipografía y tema Material 3
 ```
 
@@ -143,6 +150,9 @@ app/src/main/java/com/example/dogfinder/
 | `DogDao` | Define las operaciones sobre la tabla de favoritos: insertar, eliminar, listar y verificar existencia. |
 | `FavoriteDog` | Entidad de Room. Representa un perro favorito (URL de imagen y raza). |
 | `BreedResponse` / `DogImageResponse` | Clases de datos que modelan las respuestas JSON de la API. |
+| `ThemePreferences` | Envoltorio de DataStore que guarda y lee la preferencia del modo oscuro. |
+| `DogDownloadService` | Service que descarga las fotos favoritas en background. |
+| `DownloadReceiver` | BroadcastReceiver que muestra una notificación cuando termina la descarga. |
 
 ### Pantallas
 
@@ -150,7 +160,7 @@ app/src/main/java/com/example/dogfinder/
 |----------|-----------|-------------|
 | Lista de razas | `BreedListScreen` | Muestra todas las razas con un buscador para filtrar por nombre. |
 | Detalle de raza | `BreedDetailScreen` | Galería de fotos de la raza seleccionada, con opción de favorito y compartir. |
-| Favoritos | `FavoritesScreen` | Galería de las fotos guardadas como favoritas. |
+| Favoritos | `FavoritesScreen` | Galería de las fotos guardadas como favoritas, con opción de descargarlas.. |
 
 ---
 
@@ -160,9 +170,10 @@ app/src/main/java/com/example/dogfinder/
 |------------|----------------|
 | **Activity** | `MainActivity` — única Activity que aloja las pantallas de Compose. |
 | **Service** | `DogDownloadService` — servicio encargado de la descarga de imágenes en segundo plano. |
+| **BroadcastReceiver** | `DownloadReceiver` — escucha el broadcast que envía el Service al terminar la descarga y muestra una notificación al usuario con la cantidad de fotos descargadas. |
 | **Intents** | Se usan para la navegación interna, compartir fotos (`ACTION_SEND`) e iniciar el servicio de descarga. |
 
-> Nota: los componentes BroadcastReceiver y Content Provider están
+> Nota: el componente Content Provider están
 > contemplados como mejora futura del proyecto.
 
 ---
@@ -226,6 +237,11 @@ por WhatsApp, correo u otras aplicaciones.
 Dentro de la pantalla de favoritos, se incluye un botón de descarga en la barra
 superior. Al accionarlo, se inicia el `DogDownloadService`, que descarga
 físicamente las imágenes a la carpeta privada de la app para su consulta local.
+
+### Cambiar entre modo claro y oscuro
+En la barra superior hay un ícono de sol/luna que alterna entre el modo claro y
+el modo oscuro. La preferencia se guarda con DataStore y se mantiene al cerrar
+y reabrir la app.
 
 ### Navegación
 El botón de flecha en la barra superior permite volver a la pantalla anterior.
