@@ -41,9 +41,10 @@ La app sigue las guías de **Material Design 3**.
 
 ## Integrantes
 
-<!-- Completar con los nombres del equipo -->
-- Integrante 1: _________________
-- Integrante 2: _________________
+
+- Nicolas Caputto
+- Damaso Tor
+- Diego Koci
 
 **Repositorio:** https://github.com/DieAndres/dog-finder
 
