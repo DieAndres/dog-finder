@@ -61,21 +61,49 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.layout.ContentScale
 /*para intent*/
 import android.content.Intent
+import com.example.dogfinder.service.DogDownloadService
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.filled.Share
+/*para buscador*/
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.Search
+/*para modo oscuro*/
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // NUEVO: instanciamos la clase de preferencias para guardar el modo oscuro
+        val themePreferences = ThemePreferences(applicationContext)
+
         setContent {
             val navController = rememberNavController()
             val dogViewModel: DogViewModel = viewModel()
 
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val currentRoute = navBackStackEntry?.destination?.route
-            //Logica para el boton de atras
-            DogFinderTheme {
+
+            // NUEVO: observamos el modo oscuro guardado en DataStore.
+            // 'collectAsState' convierte el Flow en un State observable por Compose.
+            val isDarkMode by themePreferences.isDarkMode
+                .collectAsState(initial = false)
+
+            // NUEVO: scope para lanzar la coroutine que guarda el cambio
+            val scope = rememberCoroutineScope()
+
+            // NUEVO: ahora pasamos isDarkMode al theme
+            DogFinderTheme(darkTheme = isDarkMode) {
                 Scaffold(
                     topBar = {
                         TopAppBar(
@@ -92,7 +120,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = Color(0xFFFF9800) // Un naranja vibrante y amigable
+                                containerColor = Color(0xFFFF9800)
                             ),
                             navigationIcon = {
                                 if (currentRoute?.startsWith("detalle") == true || currentRoute == "favoritos") {
@@ -106,6 +134,32 @@ class MainActivity : ComponentActivity() {
                                 }
                             },
                             actions = {
+                                // NUEVO: botón para alternar modo claro/oscuro (siempre visible)
+                                IconButton(onClick = {
+                                    scope.launch {
+                                        themePreferences.setDarkMode(!isDarkMode)
+                                    }
+                                }) {
+                                    Icon(
+                                        imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
+                                        contentDescription = if (isDarkMode) "Modo claro" else "Modo oscuro",
+                                        tint = Color.White
+                                    )
+                                }
+
+                                if (currentRoute == "favoritos") {
+                                    val context = LocalContext.current
+                                    IconButton(onClick = {
+                                        val intent = Intent(context, DogDownloadService::class.java)
+                                        context.startService(intent)
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Download,
+                                            contentDescription = "Descargar Favoritos",
+                                            tint = Color.White
+                                        )
+                                    }
+                                }
                                 if (currentRoute != "favoritos") {
                                     IconButton(onClick = { navController.navigate("favoritos") }) {
                                         Icon(
@@ -153,6 +207,16 @@ fun BreedListScreen(
     val isLoading = dogViewModel.isLoading.value
     val errorMessage = dogViewModel.errorMessage.value
 
+    // NUEVO: variable de estado que guarda lo que el usuario escribe.
+    // 'remember' hace que el texto no se pierda al redibujar la pantalla.
+    var textoBusqueda by remember { mutableStateOf("") }
+
+    // NUEVO: la lista filtrada. Si el buscador está vacío muestra todo;
+    // si no, muestra solo las razas que contienen el texto escrito.
+    val razasFiltradas = listaDeRazas.filter { raza ->
+        raza.contains(textoBusqueda, ignoreCase = true)
+    }
+
     when {
         isLoading -> {
             Box(
@@ -171,45 +235,53 @@ fun BreedListScreen(
             }
         }
         else -> {
-            LazyColumn {
-                items(listaDeRazas) { raza ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .clickable { onBreedClick(raza) },
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        )
-                    ) {
-                        Row(
+            // NUEVO: Column envuelve el buscador + la lista
+            Column {
+                // El campo de búsqueda
+                OutlinedTextField(
+                    value = textoBusqueda,
+                    onValueChange = { nuevoTexto -> textoBusqueda = nuevoTexto },
+                    label = { Text("Buscar raza...") },
+                    leadingIcon = {
+                        Icon(Icons.Default.Search, contentDescription = "Buscar")
+                    },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+
+                // La lista ahora usa 'razasFiltradas' en lugar de 'listaDeRazas'
+                LazyColumn {
+                    items(razasFiltradas) { raza ->
+                        Card(
                             modifier = Modifier
-                                .padding(16.dp)
-                                .fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = Color(0xFFFFE0B2),
-                                modifier = Modifier.size(40.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Icon(
-                                        imageVector = Icons.Default.Pets,
-                                        contentDescription = null,
-                                        tint = Color(0xFFE65100),
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.width(16.dp))
-
-                            Text(
-                                text = raza.replaceFirstChar { it.uppercase() },
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .clickable { onBreedClick(raza) },
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant
                             )
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Pets,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = raza.replaceFirstChar { it.uppercase() },
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
